@@ -1,0 +1,441 @@
+package ScrollingGame;
+import java.util.*;
+import javax.swing.*;
+
+
+public class Game
+{
+  private Grid grid;
+  private int userRow;
+  private int userCol;
+  private Boolean BossWin;
+  private Boolean easy,medium,hard;
+  private int msElapsed;
+  private int timesHit;
+  private int scoreCount;
+  private int gridHeight;
+  private int gridWidth;
+  private int moveCount;
+  private boolean level2;
+  private boolean cape;
+  private String list;
+
+  Random rand = new Random();
+
+  public Game()
+  {
+    moveCount = 0;
+    list ="";
+    easy = false;
+    medium = false;
+    hard = false;
+    BossWin = false;
+    cape = false;
+    gridHeight = 10;
+    gridWidth = 10;
+    grid = new Grid(gridHeight,gridWidth);
+    userRow = gridHeight/2;
+    userCol = 0;
+    msElapsed = 0;
+    timesHit = 1;
+    updateTitle();
+    grid.setImage(new Location(userRow, userCol), "user.gif");
+  }
+
+  public void selectDifficulty()
+  {
+   Object [] possibleValues = { "Easy", "Medium", "Hard" };
+   Object selectedValue = JOptionPane.showInputDialog(null,
+            "Select Your Difficulty!", "Difficulty",
+            JOptionPane.INFORMATION_MESSAGE, null,
+            possibleValues, possibleValues[0]);
+        if(selectedValue == "Easy"){
+           list = "easy.txt";
+            timesHit = 10;
+            easy = true;
+            level2=false;}
+        if(selectedValue == "Medium"){
+           list = "medium.txt";
+            timesHit = 5;
+            medium = true;
+            level2=false;}
+        else if(selectedValue == "Hard"){
+           list = "hard.txt";
+            timesHit = 1;
+            hard = true;
+            level2=false;}
+  }
+  
+  public void play()
+  {
+    grid.showMessageDialog("King DeDeDe is trying to stop Kirby " +
+      "from reaching the castle!\nDodge the bombs,Waddle Dees and Waddle Doos, but be on the lookout for " +
+      "more helpful items!"+"\nAttack the bosses to advance to the next level.\nFinally, beat King DeDeDe on the 3rd level to win!"
+      +"\nAnswer the Question Correctly to Gain Points!\n\n");
+
+   grid.showMessageDialog("Use the arrow Keys to move!"+ "\n\nCherries = Extra Life!"+
+            "\nBombs = Minus Life."+
+            "\nWaddle Dee= Minus Life."
+            +"\nWaddle Doo = Minus Life."
+            +"\nStars = Points!"
+            +"\nCapes = Super Bonus Points!"+"\nWrong answers result in no points.");
+         //load questions! :D WITHOUT FAIL!
+    QuestionHandler.loadQuestions(list);
+
+    while (!isGameOver())
+    {
+      grid.pause(100);
+      handleKeyPress();
+      if (msElapsed % 300 == 0)
+      {
+        ScrollLefts();
+        populateRightEdge();
+      }
+      updateTitle();
+      msElapsed += 100;
+    }
+  }
+
+  public void play2()
+  {
+    QuestionHandler.loadQuestions(list);
+
+    level2=true;
+
+
+    while (!isGameOver())
+     {
+      grid.pause(100);
+      handleKeyPress();
+      if (msElapsed % 250 == 0)
+      {
+        ScrollLefts();
+        populateRightEdge();
+      }
+      updateTitle();
+      msElapsed += 100;
+     }
+    }
+  
+  public void handleKeyPress()
+  {
+      int key = grid.checkLastKeyPressed();
+      grid.setImage(new Location(userRow,userCol),null);
+      if(key == 39)//right
+      {   
+          //grid.setImage(new Location(userRow,userCol),null);
+           if(userCol < gridWidth -2)
+           {
+               userCol++;
+               moveCount++;
+           }
+           //grid.setImage(new Location(userRow,userCol),"user.gif");
+           handleCollision(new Location(userRow,userCol));
+      }
+      if(key ==38)//down
+      {   
+         // grid.setImage(new Location(userRow,userCol),null);
+           if(userRow >0){
+               moveCount++;
+               userRow--;}
+          // grid.setImage(new Location(userRow,userCol),"user.gif");
+           handleCollision(new Location(userRow,userCol));
+      }
+      if(key == 37)//left
+      {   
+          //grid.setImage(new Location(userRow,userCol),null);
+           if(userCol > 0){
+               moveCount++;
+               userCol--;
+           }
+           //grid.setImage(new Location(userRow,userCol),"user.gif");
+           handleCollision(new Location(userRow,userCol));
+      }
+      if(key ==40)//up
+      {   
+          //grid.setImage(new Location(userRow,userCol),null);
+          if(userRow < gridHeight-1){
+              userRow++;
+              moveCount++;}
+          //grid.setImage(new Location(userRow,userCol),"user.gif");
+          handleCollision(new Location(userRow,userCol));
+      }
+      if(cape)
+           grid.setImage(new Location(userRow,userCol),"superKirb.GIF");
+      else
+           grid.setImage(new Location(userRow,userCol),"user.gif");
+  }
+  
+  public void populateRightEdge()
+  {
+      Random rand = new Random();
+      int a = rand.nextInt(100);
+
+   if(easy){
+
+      if( a <= 90){
+      grid.setImage(new Location(rand.nextInt(gridHeight),gridWidth-1), "avoid.gif");}
+      if (a > 75){
+      grid.setImage(new Location(rand.nextInt(gridHeight),gridWidth-1), "get.gif");}
+      if(a > 93){
+          grid.setImage(new Location(rand.nextInt(gridHeight),gridWidth-1), "cherry_bonus.gif");}
+      if((a<=25)&&(level2==true)){
+        grid.setImage(new Location(rand.nextInt(gridHeight),gridWidth-1), "waddledeerunning.gif");
+      }
+      if((a<=25)&&(level2==false)){
+        grid.setImage(new Location(rand.nextInt(gridHeight),gridWidth-1), "waddledeewalking.gif");
+      }
+      if((a<=15)&&(level2==true)){
+        grid.setImage(new Location(rand.nextInt(gridHeight),gridWidth-1), "waddledoorunning.gif");
+      }
+      if((a<=15)&&(level2==false)){
+        grid.setImage(new Location(rand.nextInt(gridHeight),gridWidth-1), "waddledoowalking.gif");
+      }
+      if(a > 95){
+          grid.setImage(new Location(rand.nextInt(gridHeight),gridWidth-1), "cape.GIF");
+      }
+      if(a>97){
+         if((scoreCount >=10000)&&(level2==false))
+          grid.setImage(new Location(gridHeight/2,gridWidth-1), "Escargoon.gif");
+         if((scoreCount >= 30000) && (level2==true)){
+          grid.setImage(new Location(gridHeight/2,gridWidth-1), "boss.gif");}
+       }
+   }//easy
+
+   if(medium){
+      if( a <= 95){
+      grid.setImage(new Location(rand.nextInt(gridHeight),gridWidth-1), "avoid.gif");}
+      if (a > 80){
+      grid.setImage(new Location(rand.nextInt(gridHeight),gridWidth-1), "get.gif");}
+      if(a > 97){
+          grid.setImage(new Location(rand.nextInt(gridHeight),gridWidth-1), "cherry_bonus.gif");}
+      if(a > 97){
+          grid.setImage(new Location(rand.nextInt(gridHeight),gridWidth-1), "cape.GIF");
+      }
+       if((a<=25)&&(level2==true)){
+        grid.setImage(new Location(rand.nextInt(gridHeight),gridWidth-1), "waddledeerunning.gif");
+      }
+      if((a<=25)&&(level2==false)){
+        grid.setImage(new Location(rand.nextInt(gridHeight),gridWidth-1), "waddledeewalking.gif");
+      }
+      if((a<=25)&&(level2==true)){
+        grid.setImage(new Location(rand.nextInt(gridHeight),gridWidth-1), "waddledoorunning.gif");
+      }
+      if((a<=25)&&(level2==false)){
+        grid.setImage(new Location(rand.nextInt(gridHeight),gridWidth-1), "waddledoowalking.gif");
+       }
+      if(a>96){
+      if((scoreCount >= 10000) && (level2==false)){
+          grid.setImage(new Location(gridHeight/2,gridWidth-1), "Escargoon.gif");}
+      if((scoreCount >= 30000) && (level2==true)){
+          grid.setImage(new Location(gridHeight/2,gridWidth-1), "boss.gif");}}
+   }//medium
+
+  if(hard){
+      if( a <= 98){
+      grid.setImage(new Location(rand.nextInt(gridHeight),gridWidth-1), "avoid.gif");}
+      if (a > 70){
+      grid.setImage(new Location(rand.nextInt(gridHeight),gridWidth-1), "get.gif");}
+      if(a > 98){
+          grid.setImage(new Location(rand.nextInt(gridHeight),gridWidth-1), "cherry_bonus.gif");}
+      if(a > 98){
+          grid.setImage(new Location(rand.nextInt(gridHeight),gridWidth-1), "cape.GIF");}
+       if((a<=25)&&(level2==true)){
+        grid.setImage(new Location(rand.nextInt(gridHeight),gridWidth-1), "waddledeerunning.gif");
+      }
+      if((a<=25)&&(level2==false)){
+        grid.setImage(new Location(rand.nextInt(gridHeight),gridWidth-1), "waddledeewalking.gif");
+      }
+      if((a<=25)&&(level2==true)){
+        grid.setImage(new Location(rand.nextInt(gridHeight),gridWidth-1), "waddledoorunning.gif");
+      }
+      if((a<=25)&&(level2==false)){
+        grid.setImage(new Location(rand.nextInt(gridHeight),gridWidth-1), "waddledoowalking.gif");
+      }
+      if(a>97){
+      if((scoreCount >= 10000) && (level2==false)){
+          grid.setImage(new Location(gridHeight/2,gridWidth-1), "Escargoon.gif");}
+      if((scoreCount >= 30000) && (level2==true)){
+          grid.setImage(new Location(gridHeight/2,gridWidth-1), "boss.gif");}}
+    }//hard
+  
+      }
+  
+  
+  public void ScrollLefts()
+  {   handleCollision(new Location(userRow,userCol+1));
+      for(int x=0; x< gridHeight; x++)
+      {
+          for(int y=0;y<gridWidth;y++)
+          {        
+              if(!grid.getImage(new Location(x,y)).equals("user.gif") &&
+                      !grid.getImage(new Location(x,y)).equals("superKirb.GIF") &&
+                      !grid.getImage(new Location(x,y)).equals("")){
+                //grid.getImage(new Location(x,y));
+                if (y>0)
+                    grid.setImage(new Location(x,y-1), grid.getImage(new Location(x,y)));
+                grid.setImage(new Location(x,y),null);}            
+          }// y for
+      }//x for
+  }//scrollLeft
+  
+  public void handleCollision(Location loc)
+  {
+      if(grid.getImage(loc).equals("avoid.gif")){
+          grid.setImage(loc, "hit.gif");
+          Random random = new Random();
+          int scored = random.nextInt(500);
+          scoreCount-=scored;
+            if(level2==true)
+            {
+                scoreCount-=scored;
+            }
+          timesHit--;
+          cape = false;
+      }
+      if(grid.getImage(loc).equals("waddledeerunning.gif")){
+          grid.setImage(loc, "hit.gif");
+          Random random = new Random();
+          int scored = random.nextInt(250);
+          scoreCount-=scored;
+            if(level2==true)
+            {
+                scoreCount-=scored;
+            }
+          timesHit--;
+          cape = false;
+      }
+      if(grid.getImage(loc).equals("waddledoorunning.gif")){
+          grid.setImage(loc, "hit.gif");
+          Random random = new Random();
+          int scored = random.nextInt(250);
+          scoreCount-=scored;
+            if(level2==true)
+            {
+                scoreCount-=scored;
+            }
+          timesHit--;
+          cape = false;
+      }
+      if(grid.getImage(loc).equals("waddledeewalking.gif")){
+          grid.setImage(loc, "hit.gif");
+          Random random = new Random();
+          int scored = random.nextInt(250);
+          scoreCount-=scored;
+            if(level2==true)
+            {
+                scoreCount-=scored;
+            }
+          timesHit--;
+          cape = false;
+      }
+      if(grid.getImage(loc).equals("waddledoowalking.gif")){
+          grid.setImage(loc, "hit.gif");
+          Random random = new Random();
+          int scored = random.nextInt(250);
+          scoreCount-=scored;
+            if(level2==true)
+            {
+                scoreCount-=scored;
+            }
+          timesHit--;
+          cape = false;
+      }
+      if(grid.getImage(loc).equals("get.gif")){
+          Random random = new Random();
+          int score = random.nextInt(1000);
+          scoreCount+= score;
+            if(level2 == true)
+            {
+                scoreCount+=score;
+            }
+          grid.setImage(loc, null);
+      }
+      if(grid.getImage(loc).equals("cherry_bonus.gif"))
+      {
+        if(QuestionHandler.isCorrect(QuestionHandler.askQuestion())){
+          timesHit++;
+          grid.setImage(loc, null);}
+      }
+      if(grid.getImage(loc).equals("cape.GIF"))
+      {
+        if(QuestionHandler.isCorrect(QuestionHandler.askQuestion())){
+          scoreCount+=2500;
+          if(level2==true)
+          {
+              scoreCount+=3000;
+          }
+          cape = true;}
+      }
+      if(grid.getImage(loc).equals("boss.gif")){
+        if(QuestionHandler.isCorrect(QuestionHandler.askQuestion())){
+          scoreCount+=3000;
+          BossWin = true;
+          grid.showMessageDialog("Good Job!\nYou win!");
+          grid.setImage(loc, "hit.gif");}
+      }
+      if(grid.getImage(loc).equals("Escargoon.gif")){
+        if(QuestionHandler.isCorrect(QuestionHandler.askQuestion())){
+          scoreCount+=1000;
+          BossWin = true;
+          grid.showMessageDialog("Good Job!\nNow, are you ready for the next level?");
+          grid.setImage(loc, "hit.gif");}
+      }
+
+  }//collision
+
+  public int getScore()
+  {
+    return scoreCount;
+  }
+  public int getHit()
+  {
+      return timesHit;
+  }
+  
+  public void updateTitle()
+  {
+    grid.setTitle("Score:  " + getScore() + "    Health:  "+getHit());
+  }
+  
+  public boolean isGameOver()
+  {
+    if(timesHit <= 0)
+        return true;
+    if(BossWin)
+        return true;
+    else
+        return false;
+  }
+  public void GameOver()
+  {
+    if(isGameOver() == true)
+   {
+     int response = JOptionPane.showConfirmDialog(null,
+           "You scored: "+getScore()+" in "+moveCount+" moves." +
+           "\nYou got "+QuestionHandler.getCorrect()+" right out of "
+           +(QuestionHandler.getCorrect()+QuestionHandler.getIncorrect())+
+           "\nDo you want to play again?"
+           , "Game Over!", JOptionPane.YES_NO_OPTION);
+     if(response == JOptionPane.YES_OPTION){
+        Game game = new Game();
+        game.play();
+        game.play2();
+        game.GameOver();
+     }
+     if(response == JOptionPane.NO_OPTION){
+        grid.close();
+     }
+   }
+  }
+
+  public static void main(String[] args)
+  {
+        Game game = new Game();
+        game.selectDifficulty();
+        game.play();
+        game.BossWin=false;
+        game.play2();
+        game.GameOver();
+  }//main
+}

@@ -1,0 +1,103 @@
+package ScrollingGame;
+
+import java.util.LinkedList;
+import java.util.Scanner;
+import java.util.Random;
+import java.io.*;
+import javax.swing.JOptionPane;
+
+public class QuestionHandler
+{
+    private static int questionNum;
+    public static String userInput;
+    private static int correctCount = 0;
+    private static int incorrectCount = 0;
+    private static int askedCount = 0;
+    public static LinkedList<String> questionList = new LinkedList<String>();
+    public static LinkedList<String> answerList = new LinkedList<String>();
+
+public static void loadQuestions(String fileName)// throws IOException
+{
+
+    //Empty the lists for a fresh list! :D
+    questionList.clear();
+    answerList.clear();
+    
+    try{
+        File infile = new File(fileName);
+        Scanner scan = new Scanner (infile);
+
+        //Read questions and answers from the input file
+        //and insert them into the lists
+        while(scan.hasNext())
+        {
+            questionList.add(scan.nextLine());
+            answerList.add(scan.nextLine());
+        }//WHILE
+       }//TRY
+    catch(FileNotFoundException E)
+    {
+        System.out.println("Cannot open the input file");
+    }//CATCH
+}//loadQuestions END
+
+private static String getQuestion()
+{
+    //create a random number generator
+    Random randGen = new Random();
+
+    questionNum = randGen.nextInt(questionList.size()) + 0;
+    //get a random index
+
+    //get the random question! :D
+    String question = questionList.get(questionNum);
+
+    return question;
+}// getQuestion END
+
+private static String getAnswer()
+{
+    String answer = answerList.get(questionNum);
+    return answer;
+}// getAnswer END
+
+public static boolean isCorrect(String userInput)
+{
+    if (userInput.equalsIgnoreCase(getAnswer()))
+    {
+        correctCount++;
+        JOptionPane.showMessageDialog(null, "You got it right! *highfive*");
+        return true;
+    }
+    else
+    {
+        incorrectCount++;
+        JOptionPane.showMessageDialog(null, "OH NO, THAT IS INCORRECT! \n The correct answer is " + getAnswer());
+        return false;
+    }
+}// isCorrect END
+
+public static String askQuestion()
+{
+    //Ask question! :D
+    userInput = JOptionPane.showInputDialog(getQuestion());
+    askedCount++;
+    return userInput;
+}// askQuestion END
+
+public static int getAverage()
+{
+    return (correctCount/askedCount);
+}
+
+public static int getCorrect()
+{
+    return correctCount;
+}//end getcorrect
+
+public static int getIncorrect()
+{
+    return incorrectCount;
+}
+
+}//CLASS END
